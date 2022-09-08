@@ -214,15 +214,24 @@ class MinesweeperAI():
             sentence.mark_safe(cell)
 
     def add_knowledge(self, cell, count):
+        
+        # Add the moves that have been made 
         self.moves_made.add(cell)
+        
+        # Then we want to mark that cell as a safe cell
         self.mark_safe(cell)
 
+        # Define the cells that are nearby: ± one row or column 
         nearby_cells = set()
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
+                
+                # Check i falls within the actual board - height and width
                 if 0 <= i < self.height and 0 <= j < self.width and (i, j) != cell:
-                    nearby_cells.add((i, j))        
-        
+                    # Then just add the cells to the nearby set
+                    nearby_cells.add((i, j))  
+                          
+        # Define nearby cells that we don't yet know
         nearby_unknown = nearby_cells - self.moves_made - self.mines - self.safes
         nearby_unknown_count = count - len(nearby_cells & self.mines)
         
