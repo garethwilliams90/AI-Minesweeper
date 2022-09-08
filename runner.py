@@ -6,7 +6,7 @@ from minesweeper import Minesweeper, MinesweeperAI
 
 HEIGHT = 8
 WIDTH = 8
-MINES = 8
+MINES = 10
 
 # Colors
 BLACK = (0, 0, 0)
@@ -15,7 +15,7 @@ WHITE = (255, 255, 255)
 
 # Create game
 pygame.init()
-size = width, height = 600, 400
+size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 
 # Fonts
