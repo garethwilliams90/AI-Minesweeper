@@ -1,6 +1,7 @@
 from dataclasses import make_dataclass
 import itertools
 import random
+import copy
 
 
 class Minesweeper():
@@ -166,6 +167,33 @@ class MinesweeperAI():
 
         # List of sentences about the game known to be true
         self.knowledge = []
+        
+    # Update the knowledge base when we recieve new information
+    def knowledge_update(self):
+        while True:
+            breaker = True
+            
+            # Check sentences in knowledge 
+            for i in self.knowledge:
+                for j in self.knowledge:
+                    
+                    # Check they're not 0 first 
+                    if len(i.cells) != 0 and len(j.cells) != 0:
+                        
+                        # Gives the difference between the cells and counts to reduce subset of information
+                        if i.cells < j.cells:
+                            j.cells -= i.cells
+                            j.count -= i.count
+                            breaker = False
+                    # If at least one is 0
+                    else:
+                        if i in self.knowledge and len(i.cells) == 0:
+                            self.knowledge.remove(i)
+                        if j in self.knowledge and len(j.cells) == 0:
+                            self.knowledge.remove(j)                    
+            if breaker:
+                break
+
 
     def mark_mine(self, cell):
         """
@@ -186,26 +214,26 @@ class MinesweeperAI():
             sentence.mark_safe(cell)
 
     def add_knowledge(self, cell, count):
-        """
-        Called when the Minesweeper board tells us, for a given
-        safe cell, how many neighboring cells have mines in them.
-
-        This function should:
-            1) mark the cell as a move that has been made
-            2) mark the cell as safe
-            3) add a new sentence to the AI's knowledge base
-               based on the value of `cell` and `count`
-            4) mark any additional cells as safe or as mines
-               if it can be concluded based on the AI's knowledge base
-            5) add any new sentences to the AI's knowledge base
-               if they can be inferred from existing knowledge
-        """
-        # Mark the cell as a move that has been made
         self.moves_made.add(cell)
-        
-        # Mark the cell as safe if it is safe
-        
+        self.mark_safe(cell)
 
+        nearby_cells = set()
+        for i in range(cell[0] - 1, cell[0] + 2):
+            for j in range(cell[1] - 1, cell[1] + 2):
+                if 0 <= i < self.height and 0 <= j < self.width and (i, j) != cell:
+                    nearby_cells.add((i, j))        
+        
+        nearby_unknown = nearby_cells - self.moves_made - self.mines - self.safes
+        nearby_unknown_count = count - len(nearby_cells & self.mines)
+        
+        if len(nearby_unknown) > 0: 
+            self.knowledge.append(Sentence(nearby_unknown, nearby_unknown_count))    
+            self.knowledge_update()      
+
+        for sentence in self.knowledge:
+            self.safes |= sentence.known_safes()
+            self.mines |= sentence.known_mines()
+        
     def make_safe_move(self):
         """
         Returns a safe cell to choose on the Minesweeper board.
